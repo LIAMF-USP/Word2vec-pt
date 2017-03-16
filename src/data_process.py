@@ -1,8 +1,10 @@
 from util import timeit
 import string
-from collections import Counter
+from collections import Counter, deque
 import inspect
 import os
+import numpy as np
+from random import randint
 
 
 @timeit
@@ -97,3 +99,59 @@ def get_data(words, count, word_to_index):
         data.append(index)
     count[0] = ('UNK', unk_count)
     return data, count
+
+
+@timeit
+def batch_generator(batch_size,
+                    num_skips,
+                    skip_window,
+                    data_index,
+                    data):
+
+    """
+    This functions goes thought the processed text 'data' (starting at
+    the point 'data_index') and at each step creates a reading window
+    of size 2 * skip_window + 1. The word in the center of this
+    window will be the center word and it is stored in the array
+    'batch'; this function also chooses at random one of the remaining
+    words of the window and store it in the array 'labels'. The
+    parameter num_skips controls how many times we will use the same center
+    word. After all this processing the point in the text has changed, so
+    this function also return the number 'data_index'.
+
+
+
+    :type batch_size: int
+    :type num_skips: int
+    :type skip_window: int
+    :type data_index: int
+    :type data: list of ints
+    :rtype data_index: int
+    :rtype batch: np array -> [shape = (batch_size), dtype=np.int32]
+    :rtype labels: np array -> [shape = (batch_size,1), dtype=np.int32]
+    """
+    assert batch_size % num_skips == 0
+    assert num_skips <= 2 * skip_window
+    data_size = len(data)
+    batch = np.ndarray(shape=(batch_size), dtype=np.int32)
+    labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
+    span = 2 * skip_window + 1
+    reading_window = deque(maxlen=span)
+    for _ in range(span):
+        reading_window.append(data[data_index])
+        data_index = (data_index + 1) % data_size
+    for i in range(int(batch_size / num_skips)):
+        target = skip_window
+        targets_to_avoid = [skip_window]
+        for j in range(num_skips):
+            while target in targets_to_avoid:
+                target = randint(0, span - 1)
+            targets_to_avoid.append(target)
+            center_word = reading_window[skip_window]
+            context_word = reading_window[target]
+            batch[i * num_skips + j] = center_word
+            labels[i * num_skips + j, 0] = context_word
+        reading_window.append(data[data_index])
+        data_index = (data_index + 1) % data_size
+
+    return data_index, batch, labels

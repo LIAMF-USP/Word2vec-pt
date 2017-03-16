@@ -2,11 +2,12 @@ import unittest
 import os
 import sys
 import inspect
+from random import randint
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from data_process import read_text, build_vocab, get_data
+from data_process import read_text, build_vocab, get_data, batch_generator
 from util import get_time, get_path_basic_corpus
 
 
@@ -79,6 +80,40 @@ class TestData(unittest.TestCase):
                                                            count,
                                                            dic])))
         self.assertTrue(all(comparison))
+
+    def test_bg(self):
+        """
+        Test to check if the batch_generator function chooses a context word
+        in the skip_window for each center word
+        """
+        words = read_text(get_path_basic_corpus())
+        vocab_size = 4208
+        count, dic, revert_dic = build_vocab(words, vocab_size, False)
+        data, _ = get_data(words, count, dic)
+        data_index = 0
+        skip_window = randint(1, 50)
+        num_skips = max(int(skip_window/2), 2)
+        batch_size = num_skips*3
+        new_index, batch, label = batch_generator(batch_size,
+                                                  num_skips,
+                                                  skip_window,
+                                                  data_index,
+                                                  data)
+        batch = list(batch)
+        for i, word in enumerate(data[0:new_index]):
+            while word in batch and skip_window <= i:
+                index = batch.index(word)
+                context = label[index][0]
+                before = data[i-skip_window:i]
+                after = data[i+1:i+skip_window+1]
+                self.assertTrue(context in before or context in after)
+                batch[index] = -1
+        print("\nBuilding bacth time = {}".format(get_time(batch_generator,
+                                                           [batch_size,
+                                                            num_skips,
+                                                            skip_window,
+                                                            data_index,
+                                                            data])))
 
 
 if __name__ == "__main__":
