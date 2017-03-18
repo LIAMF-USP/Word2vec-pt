@@ -1,11 +1,10 @@
 import time
 import os
-import inspect
 
 timing = {}
 
 
-def get_time(f, args):
+def get_time(f, args=[]):
     """
     After using timeit we can get the duration of the function f
     when it was applied in parameters args. Normally it is expected
@@ -17,25 +16,32 @@ def get_time(f, args):
     """
     if type(args) != list:
         args = [args]
-    key = f.__name__ + "-" + "_".join([str(arg) for arg in args])
+    key = f.__name__
+    if args != []:
+        key += "-" + "-".join([str(arg) for arg in args])
     return timing[key]
 
 
-def timeit(method):
-    """
-    Decorator for time information
-    """
+def timeit(index_args=[]):
 
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        timed.__name__ = method.__name__
-        te = time.time()
-        fkey = method.__name__ + "-" + "_".join([str(arg) for arg in args])
-        timing[fkey] = te-ts
-        return result
+    def dec(method):
+        """
+        Decorator for time information
+        """
 
-    return timed
+        def timed(*args, **kw):
+            ts = time.time()
+            result = method(*args, **kw)
+            timed.__name__ = method.__name__
+            te = time.time()
+            fkey = method.__name__
+            for i, arg in enumerate(args):
+                if i in index_args:
+                    fkey += "-" + str(arg)
+            timing[fkey] = te-ts
+            return result
+        return timed
+    return dec
 
 
 def get_path_basic_corpus():
@@ -44,7 +50,13 @@ def get_path_basic_corpus():
 
     :rtype: string
     """
-    currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    currentdir = os.path.dirname(__file__)
     filepath = os.path.join(currentdir, "data")
     filepath = os.path.join(filepath, "basic_pt.txt")
     return filepath
+
+
+def newlogname():
+    log_basedir = './graphs'
+    run_label = time.strftime('%d-%m-%Y_%H-%M-%S')  # e.g. 12-11-2016_18-20-45
+    return os.path.join(log_basedir, run_label)

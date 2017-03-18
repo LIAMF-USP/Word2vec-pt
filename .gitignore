@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+src/data/baby.txt
+src/data/pt96.txt
+vocab_1000.tsv
+
+
 # C extensions
 *.so
 
