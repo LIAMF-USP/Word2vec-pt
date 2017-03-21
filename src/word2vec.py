@@ -1,8 +1,11 @@
-import util
-from data_process import read_text, build_vocab, get_data, batch_generator
-import tensorflow as tf
 import numpy as np
-from random import sample
+import os
+import random
+import tensorflow as tf
+from tensorflow.contrib.tensorboard.plugins import projector
+import time
+import util
+from datareader import DataReader
 
 
 class Config(object):
@@ -20,8 +23,10 @@ class Config(object):
                  num_skips=2,
                  num_sampled=64,
                  lr=1.0,
-                 num_steps=100000,
-                 skip_step=2000):
+                 num_steps=100001,
+                 skip_step=2000,
+                 valid_size=16,
+                 valid_window=100):
         self.vocab_size = vocab_size
         self.batch_size = batch_size
         self.embed_size = embed_size
@@ -31,6 +36,10 @@ class Config(object):
         self.lr = lr
         self.num_steps = num_steps
         self.skip_step = skip_step
+        self.valid_size = valid_size
+        self.valid_window = valid_window
+        self.valid_examples = np.array(random.sample(range(self.valid_window),
+                                                     self.valid_size))
 
 
 class SkipGramModel:
@@ -38,19 +47,14 @@ class SkipGramModel:
     Build the graph for word2vec model
     """
     def __init__(self, config):
-        self.name = newlogname()
+        self.logdir = util.newlogname()
         self.config = config
         self.vocab_size = self.config.vocab_size
         self.embed_size = self.config.embed_size
         self.batch_size = self.config.batch_size
         self.num_sampled = self.config.num_sampled
         self.lr = self.config.lr
-        self.data = self.config.data
-        self.word2index = self.config.word2index
-        self.index_to_word = self.config.index_to_word
-        self.valid_size = 16  # Random set of words to evaluate similarity on.
-        self.valid_window = 100  # Only pick dev samples in the head of the distribution.
-        self.valid_examples = np.array(sample(range(self.valid_window), self.valid_size))
+        self.valid_examples = self.config.valid_examples
         self.build_graph()
 
     def create_placeholders(self):
@@ -69,7 +73,7 @@ class SkipGramModel:
 
     def create_weights(self):
         """
-        Creat all the weigs and bias for the models graph
+        Creat all the weights and bias for the models graph
         """
         emshape = (self.vocab_size, self.embed_size)
         eminit = tf.random_uniform(emshape, -1.0, 1.0)
@@ -114,6 +118,11 @@ class SkipGramModel:
         self.similarity = tf.matmul(valid_embeddings,
                                     tf.transpose(self.normalized_embeddings))
 
+    def create_summaries(self):
+        with tf.name_scope("summaries"):
+            tf.summary.scalar("loss", self.loss)
+            self.summary_op = tf.summary.merge_all()
+
     def build_graph(self):
             """
             Build the graph for our model
@@ -125,3 +134,108 @@ class SkipGramModel:
                 self.create_loss()
                 self.create_optimizer()
                 self.create_valid()
+                self.create_summaries()
+
+
+def run_training(model, data, verbose=True, visualization=True):
+    logdir = model.logdir
+    batch_size = model.config.batch_size
+    num_skips = model.config.num_skips
+    skip_window = model.config.skip_window
+    valid_examples = model.config.valid_examples
+    num_steps = model.config.num_steps
+    data_index = 0
+    with tf.Session(graph=model.graph) as session:
+        tf.global_variables_initializer().run()
+        ts = time.time()
+        print("Initialized")
+        print("\n&&&&&&&&&&& For TensorBoard visualization type &&&&&&&&&&&&&")
+        print("\ntensorboard  --logdir={}\n".format(logdir))
+        if visualization:
+            print("\n&&&&&&&&&&& And for the 3d embedding visualization type &&&&")
+            print("\ntensorboard  --logdir=./processed\n")
+        average_loss = 0
+        writer = tf.summary.FileWriter(logdir, session.graph)
+        for step in range(num_steps):
+            data_index, batch_data, batch_labels = data.batch_generator(batch_size,
+                                                                        num_skips,
+                                                                        skip_window,
+                                                                        data_index)
+            feed_dict = {model.center_words: batch_data,
+                         model.targets: batch_labels}
+            _, l, summary = session.run([model.optimizer,
+                                         model.loss,
+                                         model.summary_op], feed_dict=feed_dict)
+            average_loss += l
+            writer.add_summary(summary, global_step=step)
+            writer.flush()
+            if step % 2000 == 0:
+                if step > 0:
+                    average_loss = average_loss / 2000
+                    print("Average loss at step", step, ":", average_loss)
+                    average_loss = 0
+            if step % 10000 == 0 and verbose:
+                sim = model.similarity.eval()
+                for i in range(model.config.valid_size):
+                    valid_word = data.index_to_word[valid_examples[i]]
+                    top_k = 8  # number of nearest neighbors
+                    nearest = (-sim[i, :]).argsort()[1:top_k+1]
+                    log = "Nearest to %s:" % valid_word
+                    for k in range(top_k):
+                        close_word = data.index_to_word[nearest[k]]
+                        log = "%s %s," % (log, close_word)
+                    print(log)
+
+        final_embeddings = model.normalized_embeddings.eval()
+        if visualization:
+            # it has to variable. constants don't work here.
+            embedding_var = tf.Variable(final_embeddings[:1000],
+                                        name='embedding')
+            session.run(embedding_var.initializer)
+
+            emconfig = projector.ProjectorConfig()
+            summary_writer = tf.summary.FileWriter('processed')
+
+            # add embedding to the config file
+            embedding = emconfig.embeddings.add()
+            embedding.tensor_name = embedding_var.name
+
+            # link this tensor to its metadata file,
+            # in this case the first 1000 words of vocab
+            embedding.metadata_path = 'processed/vocab_1000.tsv'
+
+            # saves a configuration file that
+            # TensorBoard will read during startup.
+            projector.visualize_embeddings(summary_writer, emconfig)
+            saver_embed = tf.train.Saver([embedding_var])
+            saver_embed.save(session, 'processed/model3.ckpt', 1)
+
+    te = time.time()
+    return final_embeddings, te-ts
+
+if __name__ == "__main__":
+
+    currentdir = os.path.dirname(__file__)
+    filename = 'pt96.txt'
+    file_path = os.path.join(currentdir, 'data')
+    file_path = os.path.join(file_path, filename)
+
+    my_data = DataReader(file_path)
+    vocab_size = 50000
+    my_data.get_data(vocab_size)
+
+    process_dir = 'processed/'
+    if not os.path.exists(process_dir):
+        os.makedirs(process_dir)
+    old_vocab_path = os.path.join(currentdir, 'vocab_1000.tsv')
+    new_vocab_path = os.path.join(currentdir, 'processed')
+    new_vocab_path = os.path.join(new_vocab_path, 'vocab_1000.tsv')
+    os.rename(old_vocab_path, new_vocab_path)
+
+    my_model = SkipGramModel(Config())
+    _, duration = run_training(my_model, my_data)
+    print("duration= ", duration)
+
+
+# duration=  251.54082131385803
+# [Finished in 272.9s]
