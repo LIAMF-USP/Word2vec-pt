@@ -8,18 +8,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 from datareader import DataReader
-from util import get_time, get_path_basic_corpus
-
-
-def run_test(testClass, header):
-    """
-    Function to run all the tests from a class of tests.
-    :type testClass: unittest.TesCase
-    :type header: str
-    """
-    print(header)
-    suite = unittest.TestLoader().loadTestsFromTestCase(testClass)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+from util import get_time, get_path_basic_corpus, run_test
 
 
 class TestReading(unittest.TestCase):
@@ -70,7 +59,7 @@ class TestData(unittest.TestCase):
         in the skip_window for each center word
         """
         vocab_size = 4208
-        self.dr.get_data(self.words, vocab_size)
+        self.dr.get_data(vocab_size)
         data_index = 0
         skip_window = randint(1, 50)
         num_skips = max(int(skip_window/2), 2)

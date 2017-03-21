@@ -14,7 +14,6 @@ class DataReader(object):
         self.path = path
         self.punctuation = punctuation
         self.write_vocab = write_vocab
-        # self.build_data_time = util.get_time(self.build_data, str(self))
 
     @util.timeit()
     def read_text(self):
@@ -80,8 +79,8 @@ class DataReader(object):
         index_to_word = dict(zip(word2index.values(), word2index.keys()))
         return count, word2index, index_to_word
 
-    @util.timeit([2])
-    def get_data(self, words, vocab_size=50000):
+    @util.timeit([1])
+    def get_data(self, vocab_size=50000):
         """
         This function transfor the text "words" into a list
         of numbers according to the dictionary word2index.

@@ -24,7 +24,8 @@ class Config(object):
                  num_sampled=64,
                  lr=1.0,
                  num_steps=100001,
-                 skip_step=2000,
+                 show_step=2000,
+                 verbose_step=10000,
                  valid_size=16,
                  valid_window=100):
         self.vocab_size = vocab_size
@@ -35,7 +36,8 @@ class Config(object):
         self.num_sampled = num_sampled
         self.lr = lr
         self.num_steps = num_steps
-        self.skip_step = skip_step
+        self.show_step = show_step
+        self.verbose_step = verbose_step
         self.valid_size = valid_size
         self.valid_window = valid_window
         self.valid_examples = np.array(random.sample(range(self.valid_window),
@@ -137,25 +139,29 @@ class SkipGramModel:
                 self.create_summaries()
 
 
-def run_training(model, data, verbose=True, visualization=True):
+def run_training(model, data, verbose=True, visualization=True, Debug=False):
     logdir = model.logdir
     batch_size = model.config.batch_size
     num_skips = model.config.num_skips
     skip_window = model.config.skip_window
     valid_examples = model.config.valid_examples
     num_steps = model.config.num_steps
+    show_step = model.config.show_step
+    verbose_step = model.config.verbose_step
     data_index = 0
     with tf.Session(graph=model.graph) as session:
         tf.global_variables_initializer().run()
         ts = time.time()
         print("Initialized")
-        print("\n&&&&&&&&&&& For TensorBoard visualization type &&&&&&&&&&&&&")
-        print("\ntensorboard  --logdir={}\n".format(logdir))
         if visualization:
-            print("\n&&&&&&&&&&& And for the 3d embedding visualization type &&&&")
+            print("\n&&&&&&&&& For TensorBoard visualization type &&&&&&&&&&&")
+            print("\ntensorboard  --logdir={}\n".format(logdir))
+            print("\n&&&&&&&&& And for the 3d embedding visualization type &&")
             print("\ntensorboard  --logdir=./processed\n")
         average_loss = 0
-        writer = tf.summary.FileWriter(logdir, session.graph)
+        total_loss = 0
+        if visualization:
+            writer = tf.summary.FileWriter(logdir, session.graph)
         for step in range(num_steps):
             data_index, batch_data, batch_labels = data.batch_generator(batch_size,
                                                                         num_skips,
@@ -165,16 +171,19 @@ def run_training(model, data, verbose=True, visualization=True):
                          model.targets: batch_labels}
             _, l, summary = session.run([model.optimizer,
                                          model.loss,
-                                         model.summary_op], feed_dict=feed_dict)
+                                         model.summary_op],
+                                        feed_dict=feed_dict)
             average_loss += l
-            writer.add_summary(summary, global_step=step)
-            writer.flush()
-            if step % 2000 == 0:
+            total_loss += l
+            if visualization:
+                writer.add_summary(summary, global_step=step)
+                writer.flush()
+            if step % show_step == 0:
                 if step > 0:
-                    average_loss = average_loss / 2000
+                    average_loss = average_loss / show_step
                     print("Average loss at step", step, ":", average_loss)
                     average_loss = 0
-            if step % 10000 == 0 and verbose:
+            if step % verbose_step == 0 and verbose:
                 sim = model.similarity.eval()
                 for i in range(model.config.valid_size):
                     valid_word = data.index_to_word[valid_examples[i]]
@@ -211,7 +220,10 @@ def run_training(model, data, verbose=True, visualization=True):
             saver_embed.save(session, 'processed/model3.ckpt', 1)
 
     te = time.time()
-    return final_embeddings, te-ts
+    if Debug:
+        return te-ts, total_loss/num_steps
+    else:
+        return final_embeddings
 
 if __name__ == "__main__":
 
@@ -233,9 +245,5 @@ if __name__ == "__main__":
     os.rename(old_vocab_path, new_vocab_path)
 
     my_model = SkipGramModel(Config())
-    _, duration = run_training(my_model, my_data)
-    print("duration= ", duration)
-
-
-# duration=  251.54082131385803
-# [Finished in 272.9s]
+    em = run_training(my_model, my_data)
+    print(em)
