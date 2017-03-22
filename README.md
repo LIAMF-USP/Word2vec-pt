@@ -1,4 +1,6 @@
-# Word2vec-pt: An implementation of the Skipgram model for trainig word embeddings. The corpus and the evaluation test are set up for Portuguese. 
+# Word2vec-pt
+
+This repository holds an implementation of the Skipgram model for training word embeddings. The corpus and the evaluation test are set up for Portuguese.
 
 
 
