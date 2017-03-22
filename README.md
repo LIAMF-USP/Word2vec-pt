@@ -1,4 +1,4 @@
-# Word2vec-pt: basic scripts for trainig word embeddings. 
+# Word2vec-pt: An implementation of the Skipgram model for trainig word embeddings. The corpus and the evaluation test are set up for Portuguese. 
 
 
 
@@ -55,6 +55,7 @@ optional arguments:
 ## Example
 
 ```
+$ source download_wiki_pt.sh
 $ python3 word2vec.py -f ./data/pt96.txt -s 2001 -w 200 -B 1000
 
 &&&&&&&&& For TensorBoard visualization type &&&&&&&&&&&
