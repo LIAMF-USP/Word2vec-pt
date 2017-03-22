@@ -46,7 +46,7 @@ class Config(object):
 
 class SkipGramModel:
     """
-    Build the graph for word2vec model
+    The Skipgram model
     """
     def __init__(self, config):
         self.logdir = util.newlogname()
@@ -95,6 +95,9 @@ class SkipGramModel:
                                                   initializer=binit)
 
     def create_loss(self):
+        """
+        Creat the loss function of the model
+        """
         with tf.name_scope("loss"):
             self.embed = tf.nn.embedding_lookup(self.embeddings,
                                                 self.center_words,
@@ -107,11 +110,17 @@ class SkipGramModel:
                                                                   self.vocab_size))
 
     def create_optimizer(self):
+        """
+        Creat the optimization of the model
+        """
         with tf.name_scope("train"):
             opt = tf.train.AdagradOptimizer(self.lr)
             self.optimizer = opt.minimize(self.loss)
 
     def create_valid(self):
+        """
+        Creat the valid vectors for comparison
+        """
         norm = tf.sqrt(tf.reduce_sum(tf.square(self.embeddings),
                                      1, keep_dims=True))
         self.normalized_embeddings = self.embeddings / norm
@@ -121,6 +130,9 @@ class SkipGramModel:
                                     tf.transpose(self.normalized_embeddings))
 
     def create_summaries(self):
+        """
+        Creat the summary
+        """
         with tf.name_scope("summaries"):
             tf.summary.scalar("loss", self.loss)
             self.summary_op = tf.summary.merge_all()
@@ -139,7 +151,16 @@ class SkipGramModel:
                 self.create_summaries()
 
 
-def run_training(model, data, verbose=True, visualization=True, Debug=False):
+def run_training(model, data, verbose=True, visualization=True, debug=False):
+    """
+    Function to train the model. We use the parameter "verbose" to show
+    some the words during training; "visualization" adds ternsorboard
+    visualization; if "debug" is True then the return will be the duration of
+    the training and the mean of the loss, and if "debug" is False this
+    function returns the matrix of word embeddings.
+
+
+    """
     logdir = model.logdir
     batch_size = model.config.batch_size
     num_skips = model.config.num_skips
@@ -220,7 +241,7 @@ def run_training(model, data, verbose=True, visualization=True, Debug=False):
             saver_embed.save(session, 'processed/model3.ckpt', 1)
 
     te = time.time()
-    if Debug:
+    if debug:
         return te-ts, total_loss/num_steps
     else:
         return final_embeddings
@@ -375,8 +396,5 @@ if __name__ == "__main__":
     f.close()
 
     print("\n==========================================")
-    print("""\nThe pickle file with the word embeddings can be found in the folder 'pickles'.
-    \nThe pickle stores a dict with:
-    \ni) a dict of words to indexes ('word2index')
-    \nii) a dict of indexes to words  ('index2word')
-    \niii) an array of shape (vocab_size,embed_size) ('embeddings')""")
+    print("""\nThe emmbedding vectors can be found in
+      ./{}""".format(filename))

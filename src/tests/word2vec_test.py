@@ -33,7 +33,7 @@ class Testopt(unittest.TestCase):
                                          my_data,
                                          verbose=False,
                                          visualization=False,
-                                         Debug=True)
+                                         debug=True)
 
         self.assertTrue(duration <= 0.6)
         self.assertTrue(loss < 4)
