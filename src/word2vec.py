@@ -186,12 +186,12 @@ def run_training(model, data, verbose=True, visualization=True, Debug=False):
             if step % verbose_step == 0 and verbose:
                 sim = model.similarity.eval()
                 for i in range(model.config.valid_size):
-                    valid_word = data.index_to_word[valid_examples[i]]
+                    valid_word = data.index2word[valid_examples[i]]
                     top_k = 8  # number of nearest neighbors
                     nearest = (-sim[i, :]).argsort()[1:top_k+1]
                     log = "Nearest to %s:" % valid_word
                     for k in range(top_k):
-                        close_word = data.index_to_word[nearest[k]]
+                        close_word = data.index2word[nearest[k]]
                         log = "%s %s," % (log, close_word)
                     print(log)
 
@@ -226,15 +226,118 @@ def run_training(model, data, verbose=True, visualization=True, Debug=False):
         return final_embeddings
 
 if __name__ == "__main__":
+    import pickle
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-f",
+                        "--file",
+                        type=str,
+                        default='basic',
+                        help="""text file to apply
+                        the model (default=basic_pt.txt)""")
+
+    parser.add_argument("-s",
+                        "--num_steps",
+                        type=int,
+                        default=100000,
+                        help="number of training steps (default=100000)")
+
+    parser.add_argument("-v",
+                        "--vocab_size",
+                        type=int,
+                        default=50000,
+                        help="vocab size (default=50000)")
+
+    parser.add_argument("-b",
+                        "--batch_size",
+                        type=int,
+                        default=128,
+                        help="batch size (default=128)")
+
+    parser.add_argument("-e",
+                        "--embed_size",
+                        type=int,
+                        default=128,
+                        help="embeddings size (default=128)")
+
+    parser.add_argument("-k",
+                        "--skip_window",
+                        type=int,
+                        default=1,
+                        help="skip window (default=1)")
+
+    parser.add_argument("-n",
+                        "--num_skips",
+                        type=int,
+                        default=2,
+                        help="""number of skips, number of times
+                        a center word will be re-used (default=2)""")
+
+    parser.add_argument("-S",
+                        "--num_sampled",
+                        type=int,
+                        default=64,
+                        help="number of negativ samples(default=64)")
+
+    parser.add_argument("-l",
+                        "--learning_rate",
+                        type=float,
+                        default=1.0,
+                        help="learning rate (default=1.0)")
+
+    parser.add_argument("-w",
+                        "--show_step",
+                        type=int,
+                        default=2000,
+                        help="""show result in multiples
+                        of this step (default=2000)""")
+
+    parser.add_argument("-B",
+                        "--verbose_step",
+                        type=int,
+                        default=10000,
+                        help="""show similar words in
+                        multiples of this step (default=10000)""")
+
+    parser.add_argument("-V",
+                        "--valid_size",
+                        type=int,
+                        default=16,
+                        help="""number of words to
+                        display similarity(default=16)""")
+
+    parser.add_argument("-W",
+                        "--valid_window",
+                        type=int,
+                        default=100,
+                        help="""number of words to from vocab to
+                        choose the words to display similarity(default=100)""")
+
+    args = parser.parse_args()
+    file_path = args.file
+    if file_path == 'basic':
+        file_path = util.get_path_basic_corpus()
+        args.vocab_size = 500
+        print(args.vocab_size)
+
+    config = Config(vocab_size=args.vocab_size,
+                    batch_size=args.batch_size,
+                    embed_size=args.embed_size,
+                    skip_window=args.skip_window,
+                    num_skips=args.num_skips,
+                    num_sampled=args.num_sampled,
+                    lr=args.learning_rate,
+                    num_steps=args.num_steps,
+                    show_step=args.show_step,
+                    verbose_step=args.verbose_step,
+                    valid_size=args.valid_size,
+                    valid_window=args.valid_window)
 
     currentdir = os.path.dirname(__file__)
-    filename = 'pt96.txt'
-    file_path = os.path.join(currentdir, 'data')
-    file_path = os.path.join(file_path, filename)
-
     my_data = DataReader(file_path)
-    vocab_size = 50000
-    my_data.get_data(vocab_size)
+    my_data.get_data(args.vocab_size)
 
     process_dir = 'processed/'
     if not os.path.exists(process_dir):
@@ -244,6 +347,36 @@ if __name__ == "__main__":
     new_vocab_path = os.path.join(new_vocab_path, 'vocab_1000.tsv')
     os.rename(old_vocab_path, new_vocab_path)
 
-    my_model = SkipGramModel(Config())
-    em = run_training(my_model, my_data)
-    print(em)
+    my_model = SkipGramModel(config)
+    embeddings = run_training(my_model, my_data)
+
+    pickle_dir = 'pickles/'
+    if not os.path.exists(pickle_dir):
+        os.makedirs(pickle_dir)
+    inverse = file_path[::-1][4:]
+    number = -1
+    for i, char in enumerate(inverse):
+        if char == "/":
+            number = i
+            break
+    if number == -1:
+        filename = inverse[::-1] + '.pickle'
+    else:
+        filename = inverse[:number][::-1] + '.pickle'
+
+    prefix = os.path.join(currentdir, 'pickles')
+    filename = os.path.join(prefix, filename)
+
+    f = open(filename, 'wb')
+    di = {'word2index': my_data.word2index,
+          'index2word': my_data.index2word,
+          'embeddings': embeddings}
+    pickle.dump(di, f)
+    f.close()
+
+    print("\n==========================================")
+    print("""\nThe pickle file with the word embeddings can be found in the folder 'pickles'.
+    \nThe pickle stores a dict with:
+    \ni) a dict of words to indexes ('word2index')
+    \nii) a dict of indexes to words  ('index2word')
+    \niii) an array of shape (vocab_size,embed_size) ('embeddings')""")

@@ -58,7 +58,7 @@ class DataReader(object):
         :type write: boolean
         :rtype count: list of tuples -> (str,int)
         :rtype word2index: dictionary
-        :rtype index_to_word: dictionary
+        :rtype index2word: dictionary
         """
         count = [("UNK", 0)]
         most_frequent_words = Counter(words).most_common(vocab_size - 1)
@@ -76,8 +76,8 @@ class DataReader(object):
             index += 1
         if self.write_vocab:
                 f.close()
-        index_to_word = dict(zip(word2index.values(), word2index.keys()))
-        return count, word2index, index_to_word
+        index2word = dict(zip(word2index.values(), word2index.keys()))
+        return count, word2index, index2word
 
     @util.timeit([1])
     def get_data(self, vocab_size=50000):
@@ -97,11 +97,11 @@ class DataReader(object):
         :rtype data: list of ints
         :rtype count: list of tuples -> (str,int)
         :rtype word2index: dictionary
-        :rtype index_to_word: list of dictionary
+        :rtype index2word: list of dictionary
         """
         words = self.read_text()
-        self.count, self.word2index, self.index_to_word = self.build_vocab(words,
-                                                                              vocab_size)
+        self.count, self.word2index, self.index2word = self.build_vocab(words,
+                                                                        vocab_size)
         self.data = []
         unk_count = 0
         for word in words:
