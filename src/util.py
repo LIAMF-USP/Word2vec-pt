@@ -161,6 +161,7 @@ def score(index2word, word2index, embeddings, eval_path, verbose=True):
             total_lines += 1
             list_line = line.strip().split()
             if list_line[0] == ":":
+                print("\n" + line + "\n")
                 if old_cat is not None:
                     all_cat.append(old_cat)
                     all_cat_scores.append(old_score)

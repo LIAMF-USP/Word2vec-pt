@@ -344,7 +344,6 @@ if __name__ == "__main__":
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
         args.vocab_size = 500
-        print(args.vocab_size)
 
     config = Config(vocab_size=args.vocab_size,
                     batch_size=args.batch_size,
