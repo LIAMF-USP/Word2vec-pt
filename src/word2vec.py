@@ -46,7 +46,10 @@ class Config(object):
 
 class SkipGramModel:
     """
-    The Skipgram model
+    The Skipgram model. This class only instatiates
+    the tensorflow graph for the model.
+
+    :type config: Config
     """
     def __init__(self, config):
         self.logdir = util.newlogname()
@@ -159,7 +162,15 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
     the training and the mean of the loss, and if "debug" is False this
     function returns the matrix of word embeddings.
 
-
+    :type model: SkipGramModel
+    :type data: Datareader
+    :type verbose: boolean
+    :type visualization: boolean
+    :type debug: boolean
+    :rtype duration: float
+    :rtype avg_loss: float
+    :rtype final_embeddings: np array -> [shape = (model.vocab_size,
+                             model.embed_size), dtype=np.float32]
     """
     logdir = model.logdir
     batch_size = model.config.batch_size
@@ -218,31 +229,23 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
 
         final_embeddings = model.normalized_embeddings.eval()
         if visualization:
-            # it has to variable. constants don't work here.
             embedding_var = tf.Variable(final_embeddings[:1000],
                                         name='embedding')
             session.run(embedding_var.initializer)
-
             emconfig = projector.ProjectorConfig()
             summary_writer = tf.summary.FileWriter('processed')
-
-            # add embedding to the config file
             embedding = emconfig.embeddings.add()
             embedding.tensor_name = embedding_var.name
-
-            # link this tensor to its metadata file,
-            # in this case the first 1000 words of vocab
             embedding.metadata_path = 'processed/vocab_1000.tsv'
-
-            # saves a configuration file that
-            # TensorBoard will read during startup.
             projector.visualize_embeddings(summary_writer, emconfig)
             saver_embed = tf.train.Saver([embedding_var])
             saver_embed.save(session, 'processed/model3.ckpt', 1)
 
     te = time.time()
+    duration = te-ts
+    avg_loss = total_loss/num_steps
     if debug:
-        return te-ts, total_loss/num_steps
+        return duration, avg_loss
     else:
         return final_embeddings
 
