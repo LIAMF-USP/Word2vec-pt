@@ -26,7 +26,7 @@ word2index = my_data.word2index
 index2word = my_data.index2word
 
 number_of_exp = 20
-part1 = number_of_exp/2
+part1 = int(number_of_exp/2)
 part2 = number_of_exp - part1
 lr1 = np.random.random_sample([part1]) / 10
 lr2 = np.random.random_sample([part2])
