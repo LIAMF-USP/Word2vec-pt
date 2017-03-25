@@ -18,7 +18,7 @@ import util
 file_path = os.path.join(parentdir, "data")
 file_path = os.path.join(file_path, "pt96.txt")
 eval_path = os.path.join(parentdir, "evaluation")
-eval_path = os.path.join(eval_path, "AnalogiesBr.txt")
+eval_path = os.path.join(eval_path, "questions-words-ptbr.txt")
 
 my_data = DataReader(file_path)
 my_data.get_data()

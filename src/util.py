@@ -129,7 +129,12 @@ def analogy(word1, word2, word3, index2word, word2index, embeddings):
     return results
 
 
-def score(index2word, word2index, embeddings, eval_path, verbose=True):
+def score(index2word,
+          word2index,
+          embeddings,
+          eval_path,
+          verbose=True,
+          raw=False):
     """
     Function to calculate the score of the embeddings given one
     txt file of analogies "eval_path". A valid line is a line of the txt
@@ -165,7 +170,10 @@ def score(index2word, word2index, embeddings, eval_path, verbose=True):
                 if old_cat is not None:
                     all_cat.append(old_cat)
                     all_cat_scores.append(old_score)
-                    all_cat_totals.append(old_total * 10)
+                    if raw:
+                        all_cat_totals.append(old_total)
+                    else:
+                        all_cat_totals.append(old_total * 10)
                     old_cat = list_line[1]
                     old_score = 0
                     old_total = 0
@@ -183,8 +191,12 @@ def score(index2word, word2index, embeddings, eval_path, verbose=True):
                                     index2word,
                                     word2index,
                                     embeddings)[::-1]
-                if list_line[3] in analogues:
-                    current_score = analogues.index(list_line[3]) + 1
+                if raw:
+                    if list_line[3] == analogues[9]:
+                        current_score = 1
+                else:
+                    if list_line[3] in analogues:
+                        current_score = analogues.index(list_line[3]) + 1
                 old_score += current_score
                 if verbose:
                     sys.stdout.write('\rline:{}|cat:{}|score:{}'.format(total_lines,
@@ -193,10 +205,17 @@ def score(index2word, word2index, embeddings, eval_path, verbose=True):
                     sys.stdout.flush()
     all_cat.append(old_cat)
     all_cat_scores.append(old_score)
-    all_cat_totals.append(old_total * 10)
+    if raw:
+        all_cat_totals.append(old_total)
+    else:
+        all_cat_totals.append(old_total * 10)
     results = [cat + ": ({0}/{1})".format(score, total)
                for (cat, score, total) in zip(all_cat,
                                               all_cat_scores,
                                               all_cat_totals)]
-    final_score = np.sum(all_cat_scores) / np.sum(all_cat_totals)
+    if all_cat_totals == []:
+        final_score = 0
+        print("Every line has at least a word outside the vocabulary")
+    else:
+        final_score = np.sum(all_cat_scores) / np.sum(all_cat_totals)
     return final_score, results
