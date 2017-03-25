@@ -42,10 +42,12 @@ SKIP_WINDOW = [1,
                15]
 number_of_exp = len(SKIP_WINDOW)
 results = []
+batch = 60
 for i, sk in enumerate(SKIP_WINDOW):
     print("\n ({0} of {1})".format(i + 1, number_of_exp))
     nk = 2 * sk
-    config = wv.Config(skip_window=sk, num_skips=nk)
+    batch = batch - (batch % nk)
+    config = wv.Config(skip_window=sk, batch_size=batch, num_skips=nk)
     my_model = wv.SkipGramModel(config)
     embeddings = wv.run_training(my_model,
                                  my_data,
@@ -74,3 +76,4 @@ plt.plot(SKIP_WINDOW, results)
 plt.xlabel("skip window")
 plt.ylabel("score")
 plt.savefig("skip_window.png")
+
