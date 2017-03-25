@@ -209,7 +209,8 @@ def score(index2word,
         all_cat_totals.append(old_total)
     else:
         all_cat_totals.append(old_total * 10)
-    results = [cat + ": ({0}/{1})".format(score, total)
+    results = [cat + ": {0}% ({1}/{2})".format((score/total)*100,
+                                               score, total)
                for (cat, score, total) in zip(all_cat,
                                               all_cat_scores,
                                               all_cat_totals)]

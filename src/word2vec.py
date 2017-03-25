@@ -87,7 +87,7 @@ class SkipGramModel:
         with tf.name_scope("softmax"):
                     Wshape = (self.vocab_size, self.embed_size)
                     bshape = (self.vocab_size)
-                    std = 1.0/(self.config.embed_size ** 0.5)
+                    std = 1.0/(self.config.embed_size ** 0.01)
                     Winit = tf.truncated_normal(Wshape, stddev=std)
                     binit = tf.zeros(bshape)
                     self.weights = tf.get_variable("weights",
@@ -341,6 +341,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     file_path = args.file
+    # file_path = "./data/pt96.txt"
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
         args.vocab_size = 500

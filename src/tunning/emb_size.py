@@ -25,9 +25,10 @@ my_data.get_data()
 word2index = my_data.word2index
 index2word = my_data.index2word
 
-EMB_SIZE = np.array(range(1, 31)) * 10
+EMB_SIZE = np.array(range(1, 51)) * 10
 number_of_exp = len(EMB_SIZE)
 results = []
+reports = []
 for i, em in enumerate(EMB_SIZE):
     print("\n ({0} of {1})".format(i + 1, number_of_exp))
     config = wv.Config(embed_size=em)
@@ -37,15 +38,17 @@ for i, em in enumerate(EMB_SIZE):
                                  verbose=False,
                                  visualization=False,
                                  debug=False)
-    score, _ = util.score(index2word,
+    score, report = util.score(index2word,
                           word2index,
                           embeddings,
                           eval_path,
-                          verbose=False)
+                          verbose=False,
+                          raw=True)
+    reports.append(report)
     results.append(score)
 
 EMB_SIZE = list(EMB_SIZE)
-best_result = max(list(zip(results, EMB_SIZE)))
+best_result = max(list(zip(results, EMB_SIZE, reports)))
 result_string = """In an experiment with {0} embeddings sizes
 the best size is {1} with score = {2}.""".format(number_of_exp,
                                                  best_result[1],
@@ -53,6 +56,9 @@ the best size is {1} with score = {2}.""".format(number_of_exp,
 
 file = open("emb_size.txt", "w")
 file.write(result_string)
+file.write(" ")
+for sta in best_result[2]:
+    print(sta)
 file.close()
 
 
