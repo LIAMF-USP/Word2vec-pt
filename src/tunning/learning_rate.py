@@ -47,7 +47,8 @@ for i, learning_rate in enumerate(LEARNING_RATE):
                           word2index,
                           embeddings,
                           eval_path,
-                          verbose=False)
+                          verbose=False,
+                          raw=True)
     results.append(score)
 
 LEARNING_RATE = list(LEARNING_RATE)

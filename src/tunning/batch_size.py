@@ -41,7 +41,8 @@ for i, bs in enumerate(BATCH_SIZE):
                           word2index,
                           embeddings,
                           eval_path,
-                          verbose=False)
+                          verbose=False,
+                          raw=True)
     results.append(score)
 
 BATCH_SIZE = list(BATCH_SIZE)

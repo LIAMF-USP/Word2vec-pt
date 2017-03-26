@@ -227,7 +227,7 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
                 sim = model.similarity.eval()
                 for i in range(model.config.valid_size):
                     valid_word = data.index2word[valid_examples[i]]
-                    top_k = 8  # number of nearest neighbors
+                    top_k = 8
                     nearest = (-sim[i, :]).argsort()[1:top_k+1]
                     log = "Nearest to %s:" % valid_word
                     for k in range(top_k):
@@ -348,8 +348,8 @@ if __name__ == "__main__":
                         choose the words to display similarity(default=100)""")
 
     args = parser.parse_args()
-    # file_path = args.file
-    file_path = "./data/pt96.txt"
+    file_path = args.file
+    # file_path = "./data/pt96.txt"
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
         args.vocab_size = 500

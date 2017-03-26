@@ -54,7 +54,8 @@ for i, ns in enumerate(NUM_SAMPLED):
                           word2index,
                           embeddings,
                           eval_path,
-                          verbose=False)
+                          verbose=False,
+                          raw=True)
     results.append(score)
 
 
