@@ -17,11 +17,11 @@ class Config(object):
     """
     def __init__(self,
                  vocab_size=50000,
-                 batch_size=60,
-                 embed_size=300,
+                 batch_size=128,
+                 embed_size=128,
                  skip_window=1,
                  num_skips=2,
-                 num_sampled=1125,
+                 num_sampled=64,
                  lr=1.0,
                  std_param=0.01,
                  init_param=(1.0, 1.0),
@@ -250,8 +250,8 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
             saver_embed.save(session, 'processed/model3.ckpt', 1)
 
     te = time.time()
-    duration = te-ts
-    avg_loss = total_loss/num_steps
+    duration = te - ts
+    avg_loss = total_loss / num_steps
     if debug:
         return duration, avg_loss
     else:
@@ -353,7 +353,6 @@ if __name__ == "__main__":
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
         args.vocab_size = 500
-
     config = Config(vocab_size=args.vocab_size,
                     batch_size=args.batch_size,
                     embed_size=args.embed_size,

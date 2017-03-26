@@ -38,32 +38,48 @@ NUM_SAMPLED = [5,
                65,
                75,
                85,
-               95]
+               95,
+               120,
+               330,
+               500,
+               765,
+               1125,
+               2300]
 number_of_exp = len(NUM_SAMPLED)
 results = []
+info = []
+
 for i, ns in enumerate(NUM_SAMPLED):
     print("\n ({0} of {1})".format(i + 1, number_of_exp))
     config = wv.Config(num_sampled=ns)
+    attrs = vars(config)
+    config_info = ["%s: %s" % item for item in attrs.items()]
+    info.append(config_info)
     my_model = wv.SkipGramModel(config)
     embeddings = wv.run_training(my_model,
                                  my_data,
                                  verbose=False,
                                  visualization=False,
                                  debug=False)
-    score, _ = util.score(index2word,
-                          word2index,
-                          embeddings,
-                          eval_path,
-                          verbose=False,
-                          raw=True)
+    score, report = util.score(index2word,
+                               word2index,
+                               embeddings,
+                               eval_path,
+                               verbose=False,
+                               raw=True)
     results.append(score)
+    print("Score = {}".format(score))
+    for result in report:
+        print(result)
 
 
-best_result = max(list(zip(results, NUM_SAMPLED)))
+best_result = max(list(zip(results, NUM_SAMPLED, info)))
 result_string = """In an experiment with {0} values for the negative sampling
-the best one is {1} with score = {2}.""".format(number_of_exp,
-                                                best_result[1],
-                                                best_result[0])
+the best one is {1} with score = {2}.
+\n INFO = {3}""".format(number_of_exp,
+                        best_result[1],
+                        best_result[0],
+                        best_result[2])
 
 file = open("num_sampled.txt", "w")
 file.write(result_string)

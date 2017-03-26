@@ -34,10 +34,14 @@ number_of_exp = len(STD_PARAM)
 
 STD_PARAM.sort()
 results = []
+info = []
 
 for i, pa in enumerate(STD_PARAM):
     print("\n ({0} of {1})".format(i + 1, number_of_exp))
     config = wv.Config(std_param=pa)
+    attrs = vars(config)
+    config_info = ["%s: %s" % item for item in attrs.items()]
+    info.append(config_info)
     my_model = wv.SkipGramModel(config)
     embeddings = wv.run_training(my_model,
                                  my_data,
@@ -56,11 +60,13 @@ for i, pa in enumerate(STD_PARAM):
         print(result)
 
 STD_PARAM = list(STD_PARAM)
-best_result = max(list(zip(results, STD_PARAM)))
+best_result = max(list(zip(results, STD_PARAM, info)))
 result_string = """In an experiment with {0} std params
-the best one is {1} with score = {2}.""".format(number_of_exp,
-                                                best_result[1],
-                                                best_result[0])
+the best one is {1} with score = {2}.
+\n INFO = {3}""".format(number_of_exp,
+                        best_result[1],
+                        best_result[0],
+                        best_result[2])
 
 file = open("std_param.txt", "w")
 file.write(result_string)

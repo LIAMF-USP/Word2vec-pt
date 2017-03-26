@@ -43,10 +43,13 @@ my_xs = np.array([x for (x, y) in INIT_PARAM])
 my_ys = np.array([y for (x, y) in INIT_PARAM])
 
 results = []
-
+info = []
 for i, pa in enumerate(INIT_PARAM):
     print("\n ({0} of {1})".format(i + 1, number_of_exp))
     config = wv.Config(init_param=pa)
+    attrs = vars(config)
+    config_info = ["%s: %s" % item for item in attrs.items()]
+    info.append(config_info)
     my_model = wv.SkipGramModel(config)
     embeddings = wv.run_training(my_model,
                                  my_data,
@@ -65,11 +68,13 @@ for i, pa in enumerate(INIT_PARAM):
         print(result)
 
 my_zs = np.array(results)
-best_result = max(list(zip(results, INIT_PARAM)))
+best_result = max(list(zip(results, INIT_PARAM, info)))
 result_string = """In an experiment with {0} init params
-the best one is {1} with score = {2}.""".format(number_of_exp,
-                                                best_result[1],
-                                                best_result[0])
+the best one is {1} with score = {2}.
+\n INFO = {3}""".format(number_of_exp,
+                        best_result[1],
+                        best_result[0],
+                        best_result[2])
 
 file = open("init_param.txt", "w")
 file.write(result_string)
