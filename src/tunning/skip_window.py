@@ -30,43 +30,44 @@ SKIP_WINDOW = [1,
                3,
                4,
                5,
-               6,
-               7,
-               8,
-               9,
-               10,
-               11,
-               12,
-               13,
-               14,
-               15]
+               6]
 number_of_exp = len(SKIP_WINDOW)
 results = []
+info = []
 batch = 60
+
 for i, sk in enumerate(SKIP_WINDOW):
     print("\n ({0} of {1})".format(i + 1, number_of_exp))
     nk = 2 * sk
     batch = batch - (batch % nk)
     config = wv.Config(skip_window=sk, batch_size=batch, num_skips=nk)
+    attrs = vars(config)
+    config_info = ["%s: %s" % item for item in attrs.items()]
+    info.append(config_info)
     my_model = wv.SkipGramModel(config)
     embeddings = wv.run_training(my_model,
                                  my_data,
                                  verbose=False,
                                  visualization=False,
                                  debug=False)
-    score, _ = util.score(index2word,
-                          word2index,
-                          embeddings,
-                          eval_path,
-                          verbose=False)
+    score, report = util.score(index2word,
+                               word2index,
+                               embeddings,
+                               eval_path,
+                               verbose=False,
+                               raw=True)
     results.append(score)
+    print("Score = {}".format(score))
+    for result in report:
+        print(result)
 
-
-best_result = max(list(zip(results, SKIP_WINDOW)))
+best_result = max(list(zip(results, SKIP_WINDOW, info)))
 result_string = """In an experiment with {0} skip windows
-the best window size is {1} with score = {2}.""".format(number_of_exp,
-                                                        best_result[1],
-                                                        best_result[0])
+the best window size is {1} with score = {2}
+\n INFO = {3}""".format(number_of_exp,
+                        best_result[1],
+                        best_result[0],
+                        best_result[2])
 
 file = open("skip_window.txt", "w")
 file.write(result_string)
@@ -76,4 +77,3 @@ plt.plot(SKIP_WINDOW, results)
 plt.xlabel("skip window")
 plt.ylabel("score")
 plt.savefig("skip_window.png")
-
