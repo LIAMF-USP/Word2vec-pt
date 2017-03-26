@@ -18,11 +18,13 @@ class Config(object):
     def __init__(self,
                  vocab_size=50000,
                  batch_size=60,
-                 embed_size=70,
+                 embed_size=300,
                  skip_window=1,
                  num_skips=2,
                  num_sampled=1125,
                  lr=1.0,
+                 std_param=0.01,
+                 init_param=(1.0, 1.0),
                  num_steps=100001,
                  show_step=2000,
                  verbose_step=10000,
@@ -35,6 +37,8 @@ class Config(object):
         self.num_skips = num_skips
         self.num_sampled = num_sampled
         self.lr = lr
+        self.std_param = std_param
+        self.init_param = init_param
         self.num_steps = num_steps
         self.show_step = show_step
         self.verbose_step = verbose_step
@@ -59,6 +63,8 @@ class SkipGramModel:
         self.batch_size = self.config.batch_size
         self.num_sampled = self.config.num_sampled
         self.lr = self.config.lr
+        self.std_param = self.config.std_param
+        self.init_param = self.config.init_param
         self.valid_examples = self.config.valid_examples
         self.build_graph()
 
@@ -81,13 +87,15 @@ class SkipGramModel:
         Creat all the weights and bias for the models graph
         """
         emshape = (self.vocab_size, self.embed_size)
-        eminit = tf.random_uniform(emshape, -1.0, 1.0)
+        eminit = tf.random_uniform(emshape,
+                                   -self.init_param[0],
+                                   self.init_param[1])
         self.embeddings = tf.Variable(eminit, name="embeddings")
 
         with tf.name_scope("softmax"):
                     Wshape = (self.vocab_size, self.embed_size)
                     bshape = (self.vocab_size)
-                    std = 1.0/(self.config.embed_size ** 0.01)
+                    std = 1.0 / (self.config.embed_size ** self.std_param)
                     Winit = tf.truncated_normal(Wshape, stddev=std)
                     binit = tf.zeros(bshape)
                     self.weights = tf.get_variable("weights",
@@ -340,8 +348,8 @@ if __name__ == "__main__":
                         choose the words to display similarity(default=100)""")
 
     args = parser.parse_args()
-    file_path = args.file
-    # file_path = "./data/pt96.txt"
+    # file_path = args.file
+    file_path = "./data/pt96.txt"
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
         args.vocab_size = 500
