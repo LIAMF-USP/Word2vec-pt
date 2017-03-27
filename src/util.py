@@ -113,10 +113,10 @@ def analogy(word1, word2, word3, index2word, word2index, embeddings):
     wordvector1 = embeddings[index1]
     wordvector2 = embeddings[index2]
     wordvector3 = embeddings[index3]
-    matrix = embeddings.dot(wordvector2) - embeddings.dot(wordvector1) + embeddings.dot(wordvector3)
+    result_vector = embeddings.dot(wordvector2) - embeddings.dot(wordvector1) + embeddings.dot(wordvector3)
 
     all_results = [(v, index)
-                   for index, v in enumerate(matrix)
+                   for index, v in enumerate(result_vector)
                    if (index != index1 and
                    index != index2 and
                    index != index3)]

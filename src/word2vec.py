@@ -17,7 +17,7 @@ class Config(object):
     """
     def __init__(self,
                  vocab_size=50000,
-                 batch_size=128,
+                 batch_size=140,
                  embed_size=128,
                  skip_window=1,
                  num_skips=2,
@@ -69,22 +69,22 @@ class SkipGramModel:
         self.build_graph()
 
     def create_placeholders(self):
-            """
-            Creat placeholder for the models graph
-            """
-            with tf.name_scope("words"):
-                self.center_words = tf.placeholder(tf.int32,
-                                                   shape=[self.batch_size],
-                                                   name='center_words')
-                self.targets = tf.placeholder(tf.int32,
-                                              shape=[self.batch_size, 1],
-                                              name='target_words')
-                self.valid_dataset = tf.constant(self.valid_examples,
-                                                 dtype=tf.int32)
+        """
+        Create placeholder for the models graph
+        """
+        with tf.name_scope("words"):
+            self.center_words = tf.placeholder(tf.int32,
+                                               shape=[self.batch_size],
+                                               name='center_words')
+            self.targets = tf.placeholder(tf.int32,
+                                          shape=[self.batch_size, 1],
+                                          name='target_words')
+            self.valid_dataset = tf.constant(self.valid_examples,
+                                             dtype=tf.int32)
 
     def create_weights(self):
         """
-        Creat all the weights and bias for the models graph
+        Create all the weights and bias for the models graph
         """
         emshape = (self.vocab_size, self.embed_size)
         eminit = tf.random_uniform(emshape,
@@ -93,21 +93,21 @@ class SkipGramModel:
         self.embeddings = tf.Variable(eminit, name="embeddings")
 
         with tf.name_scope("softmax"):
-                    Wshape = (self.vocab_size, self.embed_size)
-                    bshape = (self.vocab_size)
-                    std = 1.0 / (self.config.embed_size ** self.std_param)
-                    Winit = tf.truncated_normal(Wshape, stddev=std)
-                    binit = tf.zeros(bshape)
-                    self.weights = tf.get_variable("weights",
-                                                   dtype=tf.float32,
-                                                   initializer=Winit)
-                    self.biases = tf.get_variable("biases",
-                                                  dtype=tf.float32,
-                                                  initializer=binit)
+            Wshape = (self.vocab_size, self.embed_size)
+            bshape = (self.vocab_size)
+            std = 1.0 / (self.config.embed_size ** self.std_param)
+            Winit = tf.truncated_normal(Wshape, stddev=std)
+            binit = tf.zeros(bshape)
+            self.weights = tf.get_variable("weights",
+                                           dtype=tf.float32,
+                                           initializer=Winit)
+            self.biases = tf.get_variable("biases",
+                                          dtype=tf.float32,
+                                          initializer=binit)
 
     def create_loss(self):
         """
-        Creat the loss function of the model
+        Create the loss function of the model
         """
         with tf.name_scope("loss"):
             self.embed = tf.nn.embedding_lookup(self.embeddings,
@@ -122,7 +122,7 @@ class SkipGramModel:
 
     def create_optimizer(self):
         """
-        Creat the optimization of the model
+        Create the optimization of the model
         """
         with tf.name_scope("train"):
             opt = tf.train.AdagradOptimizer(self.lr)
@@ -130,7 +130,7 @@ class SkipGramModel:
 
     def create_valid(self):
         """
-        Creat the valid vectors for comparison
+        Create the valid vectors for comparison
         """
         norm = tf.sqrt(tf.reduce_sum(tf.square(self.embeddings),
                                      1, keep_dims=True))
@@ -142,24 +142,24 @@ class SkipGramModel:
 
     def create_summaries(self):
         """
-        Creat the summary
+        Create the summary
         """
         with tf.name_scope("summaries"):
             tf.summary.scalar("loss", self.loss)
             self.summary_op = tf.summary.merge_all()
 
     def build_graph(self):
-            """
-            Build the graph for our model
-            """
-            self.graph = tf.Graph()
-            with self.graph.as_default():
-                self.create_placeholders()
-                self.create_weights()
-                self.create_loss()
-                self.create_optimizer()
-                self.create_valid()
-                self.create_summaries()
+        """
+        Build the graph for our model
+        """
+        self.graph = tf.Graph()
+        with self.graph.as_default():
+            self.create_placeholders()
+            self.create_weights()
+            self.create_loss()
+            self.create_optimizer()
+            self.create_valid()
+            self.create_summaries()
 
 
 def run_training(model, data, verbose=True, visualization=True, debug=False):
@@ -285,8 +285,8 @@ if __name__ == "__main__":
     parser.add_argument("-b",
                         "--batch_size",
                         type=int,
-                        default=128,
-                        help="batch size (default=128)")
+                        default=140,
+                        help="batch size (default=140)")
 
     parser.add_argument("-e",
                         "--embed_size",
@@ -349,7 +349,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     file_path = args.file
-    # file_path = "./data/pt96.txt"
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
         args.vocab_size = 500
