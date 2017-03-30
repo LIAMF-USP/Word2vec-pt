@@ -20,7 +20,7 @@
 
 
 \setbeamertemplate{bibliography item}[text]
-\setbeamertemplate{navigation symbols}{}%remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
 
 
 
@@ -35,7 +35,7 @@
 
 
 \date[USP 2015] 
-{USP, 28/03/2017}
+{USP, 06/04/2017}
 
 \begin{document}
 
@@ -349,7 +349,7 @@ Vamos nos concentrar no modelo Skip-gram.
 
 
 \begin{frame}[fragile]{Amostragem negativa}
-Vamos manter $x$, $W$ e $W$ e $h$ como antes. Para calcular a função erro vamos usar uma distribuição $P_{n}(\wo)$ sobre as palavras do corpus. Exemplo:\\
+Vamos manter $x$, $W$ e $W^{\prime}$ e $h$ como antes. Para calcular a função erro vamos usar uma distribuição $P_{n}(\wo)$ sobre as palavras do corpus. Exemplo:\\
 \[
 P_{n}(\wo) = \frac{U(\wo)^{\frac{3}{4}}}{Z}
 \]
@@ -571,7 +571,7 @@ homem mulher rei rainha
 \wo_{d} = arg max_{x}  \; b.^{T}x -a.^{T}x +c.^{T}x
 \end{equation}
 \begin{center}
-\textbf{ Qual a palavra cuja representação eh similar a $\wo_{b}$ e $\wo_{c}$ e dissimilar de $\wo_{a}$?}
+\textbf{ Qual a palavra cuja representação é similar a $\wo_{b}$ e $\wo_{c}$ e dissimilar de $\wo_{a}$?}
 \end{center}
 
 \end{frame}
@@ -581,34 +581,72 @@ homem mulher rei rainha
 \end{frame}
 
 \begin{frame}[fragile]{Implementação: https://github.com/felipessalvatore/Word2vec-pt}
-% Score = 0.012008445500131961
+\begin{center}
+\small{Corpus em português}
+\end{center}
 \small{
 \begin{figure}
 \begin{center}
 \begin{tabular}{|c|c|c|}
 \hline
 \cellcolor{blue!40}Categoria & \cellcolor{blue!40}Word2vec-pt & \cellcolor{blue!40}Gensim  \\ \hline
-\cellcolor{blue!10}capital-common-countries & \cellcolor{green!10}(15/306) &  \cellcolor{green!10}(8/90) \\ \hline
-\cellcolor{blue!10}capital-world &  \cellcolor{green!10}(7/1155) & \cellcolor{green!10} (4/173) \\ \hline
-\cellcolor{blue!10}curency & \cellcolor{green!10} (0/106) &  \cellcolor{green!10}(0/54) \\ \hline
-\cellcolor{blue!10}city-in-state & \cellcolor{green!10} (1/1171) &  \cellcolor{green!10}(1/208) \\ \hline
-\cellcolor{blue!10}family &  \cellcolor{red!10}(41/342) & \cellcolor{red!10}(132/306) \\ \hline
-\cellcolor{blue!10}gram1-adjective-to-adverb &  \cellcolor{red!10}(1/552) & \cellcolor{red!10}(5/380)  \\ \hline
-\cellcolor{blue!10}gram2-opposite &  \cellcolor{red!10}(0/182) &\cellcolor{red!10}(3/90) \\ \hline
-\cellcolor{blue!10}gram3-comparative &  \cellcolor{red!10}(5/30) & \cellcolor{red!10}(12/30) \\ \hline
-\cellcolor{blue!10}gram4-superlative &  \cellcolor{red!10}(3/20) & \cellcolor{red!10}(4/6) \\ \hline
-\cellcolor{blue!10}gram5-present-participle & \cellcolor{red!10} (0/702) & \cellcolor{red!10}(61/462) \\ \hline
-\cellcolor{blue!10}gram6-nationality-adjective & \cellcolor{red!10}(0/412) & \cellcolor{red!10}(37/739) \\ \hline
-\cellcolor{blue!10}gram7-past-tense &  \cellcolor{red!10}(8/1056) & \cellcolor{red!10}(124/506) \\ \hline
-\cellcolor{blue!10}gram8-plural & \cellcolor{red!10} (1/992) &\cellcolor{red!10} (25/380) \\ \hline
-\cellcolor{blue!10}gram9-plural-verbs &  \cellcolor{red!10}(9/552) & \cellcolor{red!10}(29/306)
+\cellcolor{blue!10}capital-common-countries & \cellcolor{green!20}(15/306) &  \cellcolor{green!20}(8/90) \\ \hline
+\cellcolor{blue!10}capital-world &  \cellcolor{green!20}(7/1155) & \cellcolor{green!20} (4/173) \\ \hline
+\cellcolor{blue!10}curency & \cellcolor{green!20} (0/106) &  \cellcolor{green!20}(0/54) \\ \hline
+\cellcolor{blue!10}city-in-state & \cellcolor{green!20} (1/1171) &  \cellcolor{green!20}(1/208) \\ \hline
+\cellcolor{blue!10}family &  \cellcolor{red!20}(41/342) & \cellcolor{red!20}(132/306) \\ \hline
+\cellcolor{blue!10}gram1-adjective-to-adverb &  \cellcolor{red!20}(1/552) & \cellcolor{red!20}(5/380)  \\ \hline
+\cellcolor{blue!10}gram2-opposite &  \cellcolor{red!20}(0/182) &\cellcolor{red!20}(3/90) \\ \hline
+\cellcolor{blue!10}gram3-comparative &  \cellcolor{red!20}(5/30) & \cellcolor{red!20}(12/30) \\ \hline
+\cellcolor{blue!10}gram4-superlative &  \cellcolor{red!20}(3/20) & \cellcolor{red!20}(4/6) \\ \hline
+\cellcolor{blue!10}gram5-present-participle & \cellcolor{red!20} (0/702) & \cellcolor{red!20}(61/462) \\ \hline
+\cellcolor{blue!10}gram6-nationality-adjective & \cellcolor{red!20}(0/412) & \cellcolor{red!20}(37/739) \\ \hline
+\cellcolor{blue!10}gram7-past-tense &  \cellcolor{red!20}(8/1056) & \cellcolor{red!20}(124/506) \\ \hline
+\cellcolor{blue!10}gram8-plural & \cellcolor{red!20} (1/992) &\cellcolor{red!20} (25/380) \\ \hline
+\cellcolor{blue!10}gram9-plural-verbs &  \cellcolor{red!20}(9/552) & \cellcolor{red!20}(29/306)
 \end{tabular}
 \end{center}
 \end{figure}
 }
 \end{frame}
 
+\begin{frame}[fragile]{Implementação: https://github.com/felipessalvatore/Word2vec-pt}
 
+% EUUUUUUUU
+% family: 13.5% (46/342)
+% gram1-adjective-to-adverb: 0.6% (6/930)
+% gram2-opposite: 0.0% (0/506)
+% gram3-comparative: 2.7% (36/1332)
+% gram4-superlative: 0.7% (5/756)
+
+% gram5-present-participle: 1.4% (15/1056)
+% gram7-past-tense: 1.5% (22/1482)
+% gram8-plural: 1.4% (17/1190)
+% gram9-plural-verbs: 1.0% (8/812)
+\begin{center}
+\small{Corpus em inglês}
+\end{center}
+
+\small{
+\begin{figure}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\cellcolor{blue!40}Categoria & \cellcolor{blue!40}Word2vec-pt & \cellcolor{blue!40}Gensim  \\ \hline
+\cellcolor{blue!10}family &  \cellcolor{green!20}(46/342) & \cellcolor{green!20}(1/306) \\ \hline
+\cellcolor{blue!10}gram1-adjective-to-adverb &  \cellcolor{green!20}(6/930) & \cellcolor{green!20}(0/756)  \\ \hline
+\cellcolor{blue!10}gram2-opposite &  \cellcolor{green!20}(0/506) &\cellcolor{green!20}(0/306) \\ \hline
+\cellcolor{blue!10}gram3-comparative &  \cellcolor{green!20}(36/1332) & \cellcolor{green!20}(0/1260)\\ \hline
+\cellcolor{blue!10}gram4-superlative &  \cellcolor{green!20}(5/756) & \cellcolor{green!20}(0/506) \\ \hline
+\cellcolor{blue!10}gram5-present-participle & \cellcolor{green!20} (15/1056) & \cellcolor{green!20}(0/992) \\ \hline
+\cellcolor{blue!10}gram7-past-tense &  \cellcolor{green!20}(22/1482) & \cellcolor{green!20}(0/1332) \\ \hline
+\cellcolor{blue!10}gram8-plural & \cellcolor{green!20} (17/1190) &\cellcolor{green!20} (0/992) \\ \hline
+\cellcolor{blue!10}gram9-plural-verbs &  \cellcolor{green!20}(8/812) & \cellcolor{green!20}(0/650)
+\end{tabular}
+\end{center}
+\end{figure}
+}
+\end{frame}
 
 
 \begin{frame}[fragile]{Bibliografia}
