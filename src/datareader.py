@@ -7,10 +7,18 @@ from random import randint
 
 
 class DataReader(object):
+    """
+    Class to read and manipulate text.
+    """
     def __init__(self,
                  path=util.get_path_basic_corpus(),
                  punctuation=False,
                  write_vocab=True):
+        """
+        :type path: string >>> path to text
+        :type punction: boolean
+        :type write_vocab: boolean
+        """
         self.path = path
         self.punctuation = punctuation
         self.write_vocab = write_vocab
