@@ -11,8 +11,8 @@ from datareader import DataReader
 class Config(object):
     """
     Holds model hyperparams and data information.
-    The config class is used to store various hyperparameters and dataset
-    information parameters. Model objects are passed a Config() object at
+    The config class is used to store various hyperparameters.
+    SkipGramModel objects are passed a Config() object at
     instantiation.
     """
     def __init__(self,
@@ -30,6 +30,28 @@ class Config(object):
                  verbose_step=10000,
                  valid_size=16,
                  valid_window=100):
+        """
+        :type vocab_size: int >>> size of the vocabulary
+        :type batch_size: int >>> size of the batch
+        :type embed_size: int >>> size of the word embeddings
+        :type skip_window: int >>> size of the context window
+        :type num_skip: int >>> number of times a same center word is used
+        :type num_sampled: int >>> number of samples for negativ sampling
+        :type lr: float >>> learning rate
+        :rtype std_param: float >>> parameter to define the standart deviation
+                                    of the softmax weights
+                                    std = 1.0/(embed_size**std_param)
+        :rtype init_param: (float,float) >>> params to set up the uniform
+                                             distribuition of the
+                                             initialization of the
+                                             word embeddings
+        :type num_steps: int >>> number of training steps
+        :type show_steps: int >>> steps to show the loss during training
+        :type verbose_step: int >>> steps to show some valid examples
+                                  during training
+        :type valid_size: int >>> number of valid words to show in verbose_step
+        :type valid_window: int >>> range of words to choose the valid words
+        """
         self.vocab_size = vocab_size
         self.batch_size = batch_size
         self.embed_size = embed_size
@@ -52,10 +74,11 @@ class SkipGramModel:
     """
     The Skipgram model. This class only instatiates
     the tensorflow graph for the model.
-
-    :type config: Config
     """
     def __init__(self, config):
+        """
+        :type config: Config
+        """
         self.logdir = util.newlogname()
         self.config = config
         self.vocab_size = self.config.vocab_size

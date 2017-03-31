@@ -16,7 +16,7 @@ import word2vec as wv
 import util
 
 file_path = os.path.join(parentdir, "data")
-file_path = os.path.join(file_path, "pt96.txt")
+file_path = os.path.join(file_path, "Wiki.txt")
 eval_path = os.path.join(parentdir, "evaluation")
 eval_path = os.path.join(eval_path, "questions-words-ptbr.txt")
 
