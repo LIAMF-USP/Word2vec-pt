@@ -283,18 +283,15 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
     else:
         return final_embeddings
 
-if __name__ == "__main__":
-    import pickle
-    import argparse
-
+def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-f",
                         "--file",
                         type=str,
                         default='basic',
-                        help="""text file to apply
-                        the model (default=basic_pt.txt)""")
+                        help="text file to apply
+                        the model (default=basic_pt.txt)")
 
     parser.add_argument("-s",
                         "--num_steps",
@@ -308,9 +305,7 @@ if __name__ == "__main__":
                         default=50000,
                         help="vocab size (default=50000)")
 
-    parser.add_argument("-b",
-                        "--batch_size",
-                        type=int,
+    parser.add_argument("-b", "--batch_size", type=int,
                         default=140,
                         help="batch size (default=140)")
 
@@ -337,7 +332,7 @@ if __name__ == "__main__":
                         "--num_sampled",
                         type=int,
                         default=64,
-                        help="number of negativ samples(default=64)")
+                        help="number of negative samples(default=64)")
 
     parser.add_argument("-l",
                         "--learning_rate",
@@ -349,29 +344,29 @@ if __name__ == "__main__":
                         "--show_step",
                         type=int,
                         default=2000,
-                        help="""show result in multiples
-                        of this step (default=2000)""")
+                        help="show result in multiples
+                        of this step (default=2000)")
 
     parser.add_argument("-B",
                         "--verbose_step",
                         type=int,
                         default=10000,
-                        help="""show similar words in
-                        multiples of this step (default=10000)""")
+                        help="show similar words in
+                        multiples of this step (default=10000)")
 
     parser.add_argument("-V",
                         "--valid_size",
                         type=int,
                         default=16,
-                        help="""number of words to
-                        display similarity(default=16)""")
+                        help="number of words to
+                        display similarity(default=16)")
 
     parser.add_argument("-W",
                         "--valid_window",
                         type=int,
                         default=100,
-                        help="""number of words to from vocab to
-                        choose the words to display similarity(default=100)""")
+                        help="number of words from vocab to
+                        choose the words to display similarity (default=100)")
 
     args = parser.parse_args()
     file_path = args.file
@@ -433,3 +428,6 @@ if __name__ == "__main__":
     print("\n==========================================")
     print("""\nThe emmbedding vectors can be found in
       ./{}""".format(filename))
+
+if __name__ == "__main__":
+    main()
