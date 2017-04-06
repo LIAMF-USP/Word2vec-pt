@@ -1,11 +1,14 @@
+import argparse
 import numpy as np
 import os
+import pickle
 import random
 import tensorflow as tf
-from tensorflow.contrib.tensorboard.plugins import projector
 import time
 import util
+
 from datareader import DataReader
+from tensorflow.contrib.tensorboard.plugins import projector
 
 
 class Config(object):
