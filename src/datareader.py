@@ -11,7 +11,7 @@ class DataReader(object):
     Class to read and manipulate text.
     """
     def __init__(self,
-                 path=util.get_path_basic_corpus(),
+                 path=None,
                  punctuation=False,
                  write_vocab=True):
         """
@@ -19,6 +19,9 @@ class DataReader(object):
         :type punction: boolean
         :type write_vocab: boolean
         """
+        if not path:
+            path = util.get_path_basic_corpus()
+
         self.path = path
         self.punctuation = punctuation
         self.write_vocab = write_vocab
@@ -42,10 +45,9 @@ class DataReader(object):
         with open(self.path) as inputfile:
             for line in inputfile:
                 if not self.punctuation:
-                    aux_line = line.translate(translator)
-                else:
-                    aux_line = line
-                words.extend(aux_line.strip().split())
+                    line = line.translate(translator)
+
+                words.extend(line.strip().split())
         return words
 
     @util.timeit([2])
@@ -73,24 +75,30 @@ class DataReader(object):
         count.extend(most_frequent_words)
         word2index = {}
         index = 0
+
         if self.write_vocab:
             path = os.path.dirname(__file__)
             path = os.path.join(path, 'vocab_1000.tsv')
             f = open(path, "w")
+
         for word, _ in count:
             word2index[word] = index
+
             if index < 1000 and self.write_vocab:
                 f.write(word + "\n")
+
             index += 1
+
         if self.write_vocab:
-                f.close()
+            f.close()
+
         index2word = dict(zip(word2index.values(), word2index.keys()))
         return count, word2index, index2word
 
     @util.timeit([1])
-    def get_data(self, vocab_size=50000):
+    def process_data(self, vocab_size=50000):
         """
-        This function transfor the text "words" into a list
+        This function transform the text "words" into a list
         of numbers according to the dictionary word2index.
         It also modifies the frequency counter 'count' to
         count the frequency of the word 'UNK'.
@@ -113,10 +121,13 @@ class DataReader(object):
         self.data = []
         unk_count = 0
         for word in words:
-            if word not in self.word2index:
-                unk_count += 1
             index = self.word2index.get(word, 0)
+
+            if not index:
+                unk_count += 1
+
             self.data.append(index)
+
         self.count[0] = ('UNK', unk_count)
 
     @util.timeit([1, 4])
