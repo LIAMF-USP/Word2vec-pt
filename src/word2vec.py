@@ -390,6 +390,59 @@ def create_processed_dir():
         os.makedirs(process_dir)
 
 
+def process_text_data(file_path, vocab_size):
+    """
+    This function is responsible for preprocessing the text data we will use to
+    train our model. It will perform the following steps:
+
+    * Create an word array for the file we have received. For example, if our
+      text is:
+
+        'I want to learn wordvec to do cool stuff'
+
+    It will produce the following array:
+
+        ['I', 'want', 'to', 'learn', 'wordvec', 'to', 'do', 'cool', 'stuff']
+
+    * Create the frequency count for every word in our array:
+
+       [('I', 1), ('want', 1), ('to', 2), ('learn', 1), ('wordvec', 1),
+        ('do', 1), ('cool', 1), ('stuff', 1)]
+
+    * With the count array, we choose as our vocabulary the words with the
+      highest count. The number of words will be decided by the variable
+      vocab_size.
+
+    * After that we will create a dictionary to map a word to an index and an
+      index to a word:
+
+      index2word: {0: 'I', 1: 'want', 2: 'to', 3: 'learn', 4: 'wordvec',
+                   5: 'do', 6: 'cool', 7: 'stuff'}
+      word2index: {'I': 0, 'want': 1, 'to': 2, 'learn': 3, 'wordvec': 4,
+                   'do': 5, 'cool': 6, 'stuff': 7}
+
+      Both of these dictionaries are based on the words provided by the count
+      array.
+
+    * Finally, we will transform the words array to a number array, using the
+      word2vec dictionary.
+
+      Therefore, our words array:
+
+      ['I', 'want', 'to', 'learn', 'wordvec', 'to', 'do', 'cool', 'stuff']
+
+      Will be translated to:
+
+      [0, 1, 2, 3, 4, 2, 5, 6, 7]
+
+      If a word is not present in the word2index array, it will be considered an
+      unknown word. Every unknown word will be mapped to the same index.
+    """
+    my_data = DataReader(file_path)
+    my_data.process_data(config.vocab_size)
+    return my_data
+
+
 def main():
     parser = create_argument_parser()
 
@@ -401,13 +454,10 @@ def main():
         user_args.vocab_size = 500
 
     config = UserConfig(user_args)
-
-    current_dir = os.path.dirname(__file__)
-    my_data = DataReader(file_path)
-    my_data.get_data(config.vocab_size)
-
+    my_data = process_text_data(file_path, config.vocab_size)
     create_processed_dir()
 
+    current_dir = os.path.dirname(__file__)
     old_vocab_path = os.path.join(currentdir, 'vocab_1000.tsv')
     new_vocab_path = os.path.join(currentdir, 'processed')
     new_vocab_path = os.path.join(new_vocab_path, 'vocab_1000.tsv')
