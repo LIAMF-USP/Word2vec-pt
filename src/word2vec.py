@@ -1,14 +1,17 @@
+import argparse
 import numpy as np
 import os
+import pickle
 import random
 import tensorflow as tf
-from tensorflow.contrib.tensorboard.plugins import projector
 import time
 import util
+
 from datareader import DataReader
+from tensorflow.contrib.tensorboard.plugins import projector
 
 
-class Config(object):
+class Config():
     """
     Holds model hyperparams and data information.
     The config class is used to store various hyperparameters.
@@ -68,6 +71,22 @@ class Config(object):
         self.valid_window = valid_window
         self.valid_examples = np.array(random.sample(range(self.valid_window),
                                                      self.valid_size))
+
+
+class UserConfig(Config):
+    def __init__(self, user_args):
+        super().__init__(vocab_size=args.vocab_size,
+                         batch_size=args.batch_size,
+                         embed_size=args.embed_size,
+                         skip_window=args.skip_window,
+                         num_skips=args.num_skips,
+                         num_sampled=args.num_sampled,
+                         lr=args.learning_rate,
+                         num_steps=args.num_steps,
+                         show_step=args.show_step,
+                         verbose_step=args.verbose_step,
+                         valid_size=args.valid_size,
+                         valid_window=args.valid_window)
 
 
 class SkipGramModel:
@@ -280,18 +299,16 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
     else:
         return final_embeddings
 
-if __name__ == "__main__":
-    import pickle
-    import argparse
 
+def create_argument_parser():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-f",
                         "--file",
                         type=str,
                         default='basic',
-                        help="""text file to apply
-                        the model (default=basic_pt.txt)""")
+                        help="text file to apply the model (default=basic_pt.txt)"
+                       )
 
     parser.add_argument("-s",
                         "--num_steps",
@@ -305,9 +322,7 @@ if __name__ == "__main__":
                         default=50000,
                         help="vocab size (default=50000)")
 
-    parser.add_argument("-b",
-                        "--batch_size",
-                        type=int,
+    parser.add_argument("-b", "--batch_size", type=int,
                         default=140,
                         help="batch size (default=140)")
 
@@ -334,7 +349,7 @@ if __name__ == "__main__":
                         "--num_sampled",
                         type=int,
                         default=64,
-                        help="number of negativ samples(default=64)")
+                        help="number of negative samples(default=64)")
 
     parser.add_argument("-l",
                         "--learning_rate",
@@ -346,55 +361,103 @@ if __name__ == "__main__":
                         "--show_step",
                         type=int,
                         default=2000,
-                        help="""show result in multiples
-                        of this step (default=2000)""")
+                        help="show result in multiples of this step (default=2000)")
 
     parser.add_argument("-B",
                         "--verbose_step",
                         type=int,
                         default=10000,
-                        help="""show similar words in
-                        multiples of this step (default=10000)""")
+                        help="show similar words in multiples of this step (default=10000)")
 
     parser.add_argument("-V",
                         "--valid_size",
                         type=int,
                         default=16,
-                        help="""number of words to
-                        display similarity(default=16)""")
+                        help="number of words to display similarity(default=16)")
 
     parser.add_argument("-W",
                         "--valid_window",
                         type=int,
                         default=100,
-                        help="""number of words to from vocab to
-                        choose the words to display similarity(default=100)""")
+                        help="number of words from vocab to choose the words to display similarity (default=100)")
 
-    args = parser.parse_args()
-    file_path = args.file
-    if file_path == 'basic':
-        file_path = util.get_path_basic_corpus()
-        args.vocab_size = 500
-    config = Config(vocab_size=args.vocab_size,
-                    batch_size=args.batch_size,
-                    embed_size=args.embed_size,
-                    skip_window=args.skip_window,
-                    num_skips=args.num_skips,
-                    num_sampled=args.num_sampled,
-                    lr=args.learning_rate,
-                    num_steps=args.num_steps,
-                    show_step=args.show_step,
-                    verbose_step=args.verbose_step,
-                    valid_size=args.valid_size,
-                    valid_window=args.valid_window)
+    return parser
 
-    currentdir = os.path.dirname(__file__)
-    my_data = DataReader(file_path)
-    my_data.get_data(args.vocab_size)
 
+def create_processed_dir():
     process_dir = 'processed/'
     if not os.path.exists(process_dir):
         os.makedirs(process_dir)
+
+
+def process_text_data(file_path, vocab_size):
+    """
+    This function is responsible for preprocessing the text data we will use to
+    train our model. It will perform the following steps:
+
+    * Create an word array for the file we have received. For example, if our
+      text is:
+
+        'I want to learn wordvec to do cool stuff'
+
+    It will produce the following array:
+
+        ['I', 'want', 'to', 'learn', 'wordvec', 'to', 'do', 'cool', 'stuff']
+
+    * Create the frequency count for every word in our array:
+
+       [('I', 1), ('want', 1), ('to', 2), ('learn', 1), ('wordvec', 1),
+        ('do', 1), ('cool', 1), ('stuff', 1)]
+
+    * With the count array, we choose as our vocabulary the words with the
+      highest count. The number of words will be decided by the variable
+      vocab_size.
+
+    * After that we will create a dictionary to map a word to an index and an
+      index to a word:
+
+      index2word: {0: 'I', 1: 'want', 2: 'to', 3: 'learn', 4: 'wordvec',
+                   5: 'do', 6: 'cool', 7: 'stuff'}
+      word2index: {'I': 0, 'want': 1, 'to': 2, 'learn': 3, 'wordvec': 4,
+                   'do': 5, 'cool': 6, 'stuff': 7}
+
+      Both of these dictionaries are based on the words provided by the count
+      array.
+
+    * Finally, we will transform the words array to a number array, using the
+      word2vec dictionary.
+
+      Therefore, our words array:
+
+      ['I', 'want', 'to', 'learn', 'wordvec', 'to', 'do', 'cool', 'stuff']
+
+      Will be translated to:
+
+      [0, 1, 2, 3, 4, 2, 5, 6, 7]
+
+      If a word is not present in the word2index array, it will be considered an
+      unknown word. Every unknown word will be mapped to the same index.
+    """
+    my_data = DataReader(file_path)
+    my_data.process_data(config.vocab_size)
+    return my_data
+
+
+def main():
+    parser = create_argument_parser()
+
+    user_args = parser.parse_args()
+    file_path = args.file
+
+    if file_path == 'basic':
+        file_path = util.get_path_basic_corpus()
+        user_args.vocab_size = 500
+
+    config = UserConfig(user_args)
+    my_data = process_text_data(file_path, config.vocab_size)
+    create_processed_dir()
+
+    current_dir = os.path.dirname(__file__)
     old_vocab_path = os.path.join(currentdir, 'vocab_1000.tsv')
     new_vocab_path = os.path.join(currentdir, 'processed')
     new_vocab_path = os.path.join(new_vocab_path, 'vocab_1000.tsv')
@@ -430,3 +493,6 @@ if __name__ == "__main__":
     print("\n==========================================")
     print("""\nThe emmbedding vectors can be found in
       ./{}""".format(filename))
+
+if __name__ == "__main__":
+    main()
