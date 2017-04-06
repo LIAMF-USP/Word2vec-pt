@@ -11,7 +11,7 @@ from datareader import DataReader
 from tensorflow.contrib.tensorboard.plugins import projector
 
 
-class Config(object):
+class Config():
     """
     Holds model hyperparams and data information.
     The config class is used to store various hyperparameters.
@@ -71,6 +71,22 @@ class Config(object):
         self.valid_window = valid_window
         self.valid_examples = np.array(random.sample(range(self.valid_window),
                                                      self.valid_size))
+
+
+class UserConfig(Config):
+    def __init__(self, user_args):
+        super().__init__(vocab_size=args.vocab_size,
+                         batch_size=args.batch_size,
+                         embed_size=args.embed_size,
+                         skip_window=args.skip_window,
+                         num_skips=args.num_skips,
+                         num_sampled=args.num_sampled,
+                         lr=args.learning_rate,
+                         num_steps=args.num_steps,
+                         show_step=args.show_step,
+                         verbose_step=args.verbose_step,
+                         valid_size=args.valid_size,
+                         valid_window=args.valid_window)
 
 
 class SkipGramModel:
@@ -283,15 +299,16 @@ def run_training(model, data, verbose=True, visualization=True, debug=False):
     else:
         return final_embeddings
 
-def main():
+
+def create_argument_parser():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-f",
                         "--file",
                         type=str,
                         default='basic',
-                        help="text file to apply
-                        the model (default=basic_pt.txt)")
+                        help="text file to apply the model (default=basic_pt.txt)"
+                       )
 
     parser.add_argument("-s",
                         "--num_steps",
@@ -344,55 +361,53 @@ def main():
                         "--show_step",
                         type=int,
                         default=2000,
-                        help="show result in multiples
-                        of this step (default=2000)")
+                        help="show result in multiples of this step (default=2000)")
 
     parser.add_argument("-B",
                         "--verbose_step",
                         type=int,
                         default=10000,
-                        help="show similar words in
-                        multiples of this step (default=10000)")
+                        help="show similar words in multiples of this step (default=10000)")
 
     parser.add_argument("-V",
                         "--valid_size",
                         type=int,
                         default=16,
-                        help="number of words to
-                        display similarity(default=16)")
+                        help="number of words to display similarity(default=16)")
 
     parser.add_argument("-W",
                         "--valid_window",
                         type=int,
                         default=100,
-                        help="number of words from vocab to
-                        choose the words to display similarity (default=100)")
+                        help="number of words from vocab to choose the words to display similarity (default=100)")
 
-    args = parser.parse_args()
-    file_path = args.file
-    if file_path == 'basic':
-        file_path = util.get_path_basic_corpus()
-        args.vocab_size = 500
-    config = Config(vocab_size=args.vocab_size,
-                    batch_size=args.batch_size,
-                    embed_size=args.embed_size,
-                    skip_window=args.skip_window,
-                    num_skips=args.num_skips,
-                    num_sampled=args.num_sampled,
-                    lr=args.learning_rate,
-                    num_steps=args.num_steps,
-                    show_step=args.show_step,
-                    verbose_step=args.verbose_step,
-                    valid_size=args.valid_size,
-                    valid_window=args.valid_window)
+    return parser
 
-    currentdir = os.path.dirname(__file__)
-    my_data = DataReader(file_path)
-    my_data.get_data(args.vocab_size)
 
+def create_processed_dir():
     process_dir = 'processed/'
     if not os.path.exists(process_dir):
         os.makedirs(process_dir)
+
+
+def main():
+    parser = create_argument_parser()
+
+    user_args = parser.parse_args()
+    file_path = args.file
+
+    if file_path == 'basic':
+        file_path = util.get_path_basic_corpus()
+        user_args.vocab_size = 500
+
+    config = UserConfig(user_args)
+
+    current_dir = os.path.dirname(__file__)
+    my_data = DataReader(file_path)
+    my_data.get_data(config.vocab_size)
+
+    create_processed_dir()
+
     old_vocab_path = os.path.join(currentdir, 'vocab_1000.tsv')
     new_vocab_path = os.path.join(currentdir, 'processed')
     new_vocab_path = os.path.join(new_vocab_path, 'vocab_1000.tsv')
