@@ -23,7 +23,7 @@ class Testopt(unittest.TestCase):
         """
         my_data = DataReader(get_path_basic_corpus())
         my_vocab_size = 500
-        my_data.get_data(my_vocab_size)
+        my_data.process_data(my_vocab_size)
         my_config = wv.Config(num_steps=200,
                               vocab_size=my_vocab_size,
                               show_step=2)
@@ -34,9 +34,7 @@ class Testopt(unittest.TestCase):
                                          verbose=False,
                                          visualization=False,
                                          debug=True)
-
-        self.assertTrue(duration <= 0.7)
-        print(loss)
+        self.assertTrue(duration <= 1.7)
         self.assertTrue(loss < 7)
 
 if __name__ == "__main__":

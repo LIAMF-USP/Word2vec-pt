@@ -59,7 +59,7 @@ class TestData(unittest.TestCase):
         in the skip_window for each center word
         """
         vocab_size = 4208
-        self.dr.get_data(vocab_size)
+        self.dr.process_data(vocab_size)
         data_index = 0
         skip_window = randint(1, 50)
         num_skips = max(int(skip_window/2), 2)
