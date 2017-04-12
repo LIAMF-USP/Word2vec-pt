@@ -75,18 +75,18 @@ class Config():
 
 class UserConfig(Config):
     def __init__(self, user_args):
-        super().__init__(vocab_size=args.vocab_size,
-                         batch_size=args.batch_size,
-                         embed_size=args.embed_size,
-                         skip_window=args.skip_window,
-                         num_skips=args.num_skips,
-                         num_sampled=args.num_sampled,
-                         lr=args.learning_rate,
-                         num_steps=args.num_steps,
-                         show_step=args.show_step,
-                         verbose_step=args.verbose_step,
-                         valid_size=args.valid_size,
-                         valid_window=args.valid_window)
+        super().__init__(vocab_size=user_args.vocab_size,
+                         batch_size=user_args.batch_size,
+                         embed_size=user_args.embed_size,
+                         skip_window=user_args.skip_window,
+                         num_skips=user_args.num_skips,
+                         num_sampled=user_args.num_sampled,
+                         lr=user_args.learning_rate,
+                         num_steps=user_args.num_steps,
+                         show_step=user_args.show_step,
+                         verbose_step=user_args.verbose_step,
+                         valid_size=user_args.valid_size,
+                         valid_window=user_args.valid_window)
 
 
 class SkipGramModel:
@@ -307,8 +307,7 @@ def create_argument_parser():
                         "--file",
                         type=str,
                         default='basic',
-                        help="text file to apply the model (default=basic_pt.txt)"
-                       )
+                        help="text file to apply the model (default=basic_pt.txt)")
 
     parser.add_argument("-s",
                         "--num_steps",
@@ -439,7 +438,7 @@ def process_text_data(file_path, vocab_size):
       unknown word. Every unknown word will be mapped to the same index.
     """
     my_data = DataReader(file_path)
-    my_data.process_data(config.vocab_size)
+    my_data.process_data(vocab_size)
     return my_data
 
 
@@ -447,7 +446,7 @@ def main():
     parser = create_argument_parser()
 
     user_args = parser.parse_args()
-    file_path = args.file
+    file_path = user_args.file
 
     if file_path == 'basic':
         file_path = util.get_path_basic_corpus()
@@ -458,8 +457,8 @@ def main():
     create_processed_dir()
 
     current_dir = os.path.dirname(__file__)
-    old_vocab_path = os.path.join(currentdir, 'vocab_1000.tsv')
-    new_vocab_path = os.path.join(currentdir, 'processed')
+    old_vocab_path = os.path.join(current_dir, 'vocab_1000.tsv')
+    new_vocab_path = os.path.join(current_dir, 'processed')
     new_vocab_path = os.path.join(new_vocab_path, 'vocab_1000.tsv')
     os.rename(old_vocab_path, new_vocab_path)
 
@@ -480,7 +479,7 @@ def main():
     else:
         filename = inverse[:number][::-1] + '.pickle'
 
-    prefix = os.path.join(currentdir, 'pickles')
+    prefix = os.path.join(current_dir, 'pickles')
     filename = os.path.join(prefix, filename)
 
     f = open(filename, 'wb')
@@ -492,7 +491,7 @@ def main():
 
     print("\n==========================================")
     print("""\nThe emmbedding vectors can be found in
-      ./{}""".format(filename))
+      {}""".format(filename))
 
 if __name__ == "__main__":
     main()
