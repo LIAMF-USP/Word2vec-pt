@@ -28,8 +28,8 @@ class TestReading(unittest.TestCase):
 
         self.assertTrue(len(words1) > 0)
         self.assertTrue(len(words2) > 0)
-        self.assertEqual(words1[22], "System")
-        self.assertEqual(words2[22], "System.")
+        self.assertEqual(words1[22], "system")
+        self.assertEqual(words2[22], "system.")
 
 
 class TestData(unittest.TestCase):

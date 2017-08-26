@@ -44,6 +44,7 @@ class DataReader(object):
         words = []
         with open(self.path) as inputfile:
             for line in inputfile:
+                line = line.lower()
                 if not self.punctuation:
                     line = line.translate(translator)
 
